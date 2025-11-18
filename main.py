@@ -93,24 +93,6 @@ botones_menu = [
     crear_boton(btn_salir_img, btn_salir_hover_img, WIDTH//2 - btn_salir_img.get_width() // 2, 465)
 ]
 
-
-"""def dibujar_boton_pixel(boton, hover=False):
-    rect = boton["rect"]
-
-    if hover:
-        fondo = (60, 60, 60)
-        borde = (255, 200, 120)
-    else:
-        fondo = (30, 30, 30)
-        borde = (255, 160, 80)
-
-    pygame.draw.rect(screen, fondo, rect)
-    pygame.draw.rect(screen, borde, rect, 4)
-
-    texto = fuente_texto.render(boton["texto"], True, (255, 240, 200))
-    text_rect = texto.get_rect(center=rect.center)
-    screen.blit(texto, text_rect)"""
-
 # ====================
 # dibujar pantalla
 # ====================
