@@ -1,29 +1,38 @@
 import pygame
 import sys
+import os
 
 pygame.init()
 
 # =====================
 # Configuración básica
 # =====================
-WIDTH, HEIGHT = 800, 600
+WIDTH, HEIGHT = 1000, 800
+TAMANO_BOTON = (350, 150)
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Python Adventure Game")
 clock = pygame.time.Clock()
 FPS = 60
 
-#Colores
+#================
+# Colores
+#================
 NEGRO = (0, 0, 0)
-BLANCO = (255, 255, 255)
-ROJO = (255, 0, 0)
-GRIS = (200, 200, 200)
-GRIS_CLARO = (220, 220, 220)
-VERDE = (0, 255, 0)
+BLANCO = (255,225,255)
+ROJO_FALLO = (255,100,100)
+
 
 # FUENTES
-fuente_titulo = pygame.font.SysFont("consolas", 40, bold=True)
-fuente_texto = pygame.font.SysFont("consolas", 20)
-fuente_pequeña = pygame.font.SysFont("consolas", 16)
+try:
+    fuente_titulo = pygame.font.SysFont("consolas", 40, bold=True)
+    fuente_texto = pygame.font.SysFont("consolas", 20)
+    fuente_pequena = pygame.font.SysFont("consolas", 16)
+except pygame.error:
+    print("Advertencia: Fuente consola no encontrada, usando fuente por default")
+    fuente_titulo = pygame.font_Font(None, 40)
+    fuente_texto = pygame.font.Font(None, 20)
+    fuente_pequena = pygame.font.Font(None, 16)
+
 
 # Estado del juego
 ESTADO_MENU = "MENU"
@@ -33,34 +42,46 @@ estado_actual = ESTADO_MENU
 # =====================
 # Cargar imagen de fondo
 # =====================
-try:
-    fondo_menu = fondo_menu = pygame.image.load("assets/fondos/pantalla_inicial.png")
-    fondo_menu = pygame.transform.scale(fondo_menu, (WIDTH, HEIGHT))
-except Exception as e:
-    print("Error al cargar la imagen de fondo:", e)
-    fondo_menu = pygame.Surface((WIDTH, HEIGHT))
-    fondo_menu.fill(NEGRO)
+def cargar_imagen(ruta_base, nombre_archivo, tamanio=None, fallback_color=ROJO_FALLO):
 
-# =======
-# imagenes botones
-# =============
-btn_start_img = pygame.image.load("assets/botones/IniciarJuego.png")
-btn_start_hover_img = pygame.image.load("assets/botones/IniciarJuegoSelect.png")
-btn_instr_img = pygame.image.load("assets/botones/Instrucciones.png")
-btn_instr_hover_img = pygame.image.load("assets/botones/InstruccionesSelect.png")
-btn_cred_img = pygame.image.load("assets/botones/Creditos.png")
-btn_cred_hover_img = pygame.image.load("assets/botones/CreditosSelect.png")
-btn_salir_img = pygame.image.load("assets/botones/Salir.png")
-btn_salir_hover_img = pygame.image.load("assets/botones/SalirSelect.png")
+    ruta_completa = os.path.join(ruta_base, nombre_archivo)
 
-btn_start_img = pygame.transform.scale(btn_start_img, (200,180))
-btn_start_hover_img = pygame.transform.scale(btn_start_hover_img, (200, 180))
-btn_instr_img = pygame.transform.scale(btn_instr_img, (200, 180))
-btn_instr_hover_img = pygame.transform.scale(btn_instr_hover_img, (200, 180))
-btn_cred_img = pygame.transform.scale(btn_cred_img, (200, 180))
-btn_cred_hover_img = pygame.transform.scale(btn_cred_hover_img, (200, 180))
-btn_salir_img = pygame.transform.scale(btn_salir_img, (200, 180))
-btn_salir_hover_img = pygame.transform.scale(btn_salir_hover_img, (200, 180))
+    try:
+        imagen = pygame.image.load(ruta_completa)
+        imagen = imagen.convert_alpha()
+        if tamanio:
+            imagen = pygame.transform.scale(imagen, tamanio)
+        return imagen
+    
+    except Exception as e:
+        print(f"Error al sacar la imagen '{ruta_completa}':{e}")
+        if tamanio:
+            surf_fallback = pygame.Surface(tamanio)
+        else:
+            surf_fallback = pygame.Surface((200, 50))
+        
+        surf_fallback.fill(fallback_color)
+        return surf_fallback
+
+# ============
+# Rutas base 
+# ============
+ruta_assets = "assets"
+ruta_fondos = os.path.join(ruta_assets, "fondos")
+ruta_botones = os.path.join(ruta_assets, "botones")
+
+# -- Fondo ---
+fondo_menu = cargar_imagen(ruta_fondos, "pantalla_inicial.png", (WIDTH, HEIGHT), NEGRO)
+
+# --- Imagenes botones
+boton_start = cargar_imagen(ruta_botones, "IniciarJuego.png", TAMANO_BOTON)
+boton_start_hover = cargar_imagen(ruta_botones, "IniciarJuegoSelect.png", TAMANO_BOTON)
+boton_instr = cargar_imagen(ruta_botones, "Instrucciones.png", TAMANO_BOTON)
+boton_instr_hover = cargar_imagen(ruta_botones, "InstruccionesSelect.png", TAMANO_BOTON)
+boton_cred = cargar_imagen(ruta_botones, "Creditos.png", TAMANO_BOTON)
+boton_cred_hover = cargar_imagen(ruta_botones, "CreditosSelect.png", TAMANO_BOTON)
+boton_salir = cargar_imagen(ruta_botones, "Salir.png", TAMANO_BOTON)
+boton_salir_hover = cargar_imagen(ruta_botones,"SalirSelect.png", TAMANO_BOTON)
 
 # =====================
 # Botones
@@ -84,13 +105,20 @@ class crear_boton:
 
     def clic(self, pos):
         return self.rect.collidepoint(pos)
+    
+def crear_botones_centrados_menu(img_normal, img_hover, centro_y, texto_accion=""):
+    w = img_normal.get_width()
+    h = img_normal.get_height()
+    x = WIDTH // 2 - w // 2
+    y = centro_y - h // 2
+    return crear_boton(img_normal, img_hover, x, y, texto_accion)
 
-botones_menu = [
-    crear_boton(btn_start_img, btn_start_hover_img, WIDTH//2 - btn_start_img.get_width() // 2, 300),
-    crear_boton(btn_instr_img, btn_instr_hover_img, WIDTH//2 - btn_instr_img.get_width() // 2, 355),
-    crear_boton(btn_cred_img, btn_cred_hover_img, WIDTH//2 - btn_cred_img.get_width() // 2, 410),
-    crear_boton(btn_salir_img, btn_salir_hover_img, WIDTH//2 - btn_salir_img.get_width() // 2, 465)
-]
+boton_start = crear_botones_centrados_menu(boton_start, boton_start_hover, 490, "Iniciar")
+boton_instr = crear_botones_centrados_menu(boton_instr, boton_instr_hover, 550, "instrucciones")
+boton_cred = crear_botones_centrados_menu(boton_cred, boton_cred_hover, 610, "Créditos")
+boton_salir = crear_botones_centrados_menu(boton_salir, boton_salir_hover, 670, "Salir")
+
+botones_menu = [boton_start, boton_instr, boton_cred, boton_salir]
 
 # ====================
 # dibujar pantalla
@@ -118,7 +146,6 @@ while running:
                 mx, my = event.pos
                 for boton in botones_menu:
                     if boton.clic((mx, my)):
-                        texto = boton.texto
                         if boton.texto_accion == "Iniciar":
                             estado_actual = ESTADO_PLAYGROUND
                         elif boton.texto_accion == "instrucciones":
