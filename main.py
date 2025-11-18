@@ -62,7 +62,6 @@ btn_cred_hover_img = pygame.transform.scale(btn_cred_hover_img, (200, 180))
 btn_salir_img = pygame.transform.scale(btn_salir_img, (200, 180))
 btn_salir_hover_img = pygame.transform.scale(btn_salir_hover_img, (200, 180))
 
-
 # =====================
 # Botones
 # =====================
