@@ -79,13 +79,13 @@ fondo_menu = cargar_imagen(ruta_fondos, "pantalla_inicial.png", (WIDTH, HEIGHT),
 img_boton_start = cargar_imagen(ruta_botones, "IniciarJuego.png", TAMANO_BOTON)
 img_boton_start_hover = cargar_imagen(ruta_botones, "IniciarJuegoSelect.png", TAMANO_BOTON)
 
-img_boton_Level1 = cargar_imagen(ruta_botones, "Nive-1.png", TAMANO_BOTON)
+img_boton_Level1 = cargar_imagen(ruta_botones, "Nivel-1.png", TAMANO_BOTON)
 img_boton_Level1_hover = cargar_imagen(ruta_botones, "Nivel-1-Select.png", TAMANO_BOTON)
 
-img_boton_Level2 = cargar_imagen(ruta_botones, "Nive-2.png", TAMANO_BOTON)
+img_boton_Level2 = cargar_imagen(ruta_botones, "Nivel-2.png", TAMANO_BOTON)
 img_boton_Level2_hover = cargar_imagen(ruta_botones, "Nivel-2-Select.png", TAMANO_BOTON)
 
-img_boton_Level3 = cargar_imagen(ruta_botones, "Nive-3.png", TAMANO_BOTON)
+img_boton_Level3 = cargar_imagen(ruta_botones, "Nivel-3.png", TAMANO_BOTON)
 img_boton_Level3_hover = cargar_imagen(ruta_botones, "Nivel-3-Select.png", TAMANO_BOTON)
 
 img_boton_instr = cargar_imagen(ruta_botones, "Instrucciones.png", TAMANO_BOTON)
