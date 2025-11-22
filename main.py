@@ -4,12 +4,18 @@ import os
 
 pygame.init()
 
+
 # =====================
 # Configuración básica
 # =====================
 WIDTH, HEIGHT = 1400,950
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Python Adventure Game")
+try:
+    icono_img = pygame.image.load(os.path.join("assets", "icono", "python_adventure.png")).convert_alpha()
+    pygame.display.set_icon(icono_img)
+except Exception as e:
+    print(f"No se pudo cargar el icono de la venta: {e}")
 clock = pygame.time.Clock()
 FPS = 60
 
@@ -86,9 +92,22 @@ def escalar(img, factor):
 ruta_assets     = "assets"
 ruta_fondos     = os.path.join(ruta_assets, "fondos")
 ruta_personajes = os.path.join(ruta_assets, "personajes")
+ruta_musica = os.path.join(ruta_assets, "musica")
 
 # Fondo del menú
 fondo_menu = cargar_imagen(ruta_fondos, "pantalla_inicial.png", (WIDTH, HEIGHT), NEGRO)
+
+# =====================
+# Música de fondo
+# =====================
+try:
+    ruta_tema = os.path.join(ruta_musica, "soundTrack.ogg")  # o .mp3
+    pygame.mixer.music.load(ruta_tema)
+    pygame.mixer.music.set_volume(1.0)   # volumen de 0.0 a 1.0
+    pygame.mixer.music.play(-1)          # -1 = loop infinito
+except Exception as e:
+    print("No se pudo cargar la música:", e)
+
 
 # =====================
 # Personajes selección
@@ -646,9 +665,7 @@ def dibujar_pantalla_playground():
     screen.blit(personaje_actual_img, (player_x, player_y))
 
     # Si hay texto dicho (nivel 2), dibujar bocadillo
-        # Si hay texto dicho (nivel 2), dibujar bocadillo
     if texto_dicho:
-        # ancho máximo de la burbuja dentro del área visual
         max_bubble_width = RECT_VISUAL.width - 40
         min_bubble_width = 120
 
@@ -663,7 +680,6 @@ def dibujar_pantalla_playground():
             player_y - 10
         )
 
-        # Asegurar que la burbuja NO se salga de RECT_VISUAL
         if bubble_rect.left < RECT_VISUAL.x + 10:
             bubble_rect.left = RECT_VISUAL.x + 10
         if bubble_rect.right > RECT_VISUAL.right - 10:
@@ -772,15 +788,12 @@ while running:
                     iniciar_nivel(nivel_actual)
 
                 elif BTN_EJECUTAR.collidepoint((mx, my)):
-                    # Si el nivel ya está completado -> pasar al siguiente (si existe)
                     if nivel_completado:
                         if nivel_actual < NUM_NIVELES:
                             iniciar_nivel(nivel_actual + 1)
                         else:
-                            # Nivel 3 ya completado: solo re-ejecuta
                             iniciar_nivel(nivel_actual)
                     else:
-                        # Ejecutar según el nivel
                         if nivel_actual == 1:
                             ok, res = analizar_nivel1(code_text)
                             if not ok:
@@ -811,7 +824,7 @@ while running:
                         elif nivel_actual == 3:
                             ok, n_saltos = analizar_nivel3(code_text)
                             if not ok:
-                                log_message = "Error: " + n_saltos  # aquí n_saltos es mensaje de error
+                                log_message = "Error: " + n_saltos
                                 log_color   = ROJO_FALLO
                             else:
                                 saltos_pendientes = n_saltos
@@ -819,7 +832,7 @@ while running:
                                 modo_animacion    = "saltar"
                                 log_message       = f"Ejecutando saltar() {n_saltos} veces..."
                                 log_color         = NEGRO
-                                nivel_completado  = False  # se marca true al terminar animación
+                                nivel_completado  = False
 
         # ----- CRÉDITOS -----
         elif estado_actual == ESTADO_CREDITOS:
