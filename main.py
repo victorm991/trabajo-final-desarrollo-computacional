@@ -2,66 +2,106 @@ import pygame
 import sys
 import os
 
+from config import (
+    WIDTH,
+    HEIGHT,
+    FPS,
+    CAPTION,
+    NEGRO,
+    BLANCO,
+    GRIS,
+    GRIS_CLARO,
+    GRIS_OSCURO,
+    ROJO,
+    VERDE,
+    ROJO_FALLO,
+    NARANJA,
+    PANEL_BG,
+    PANEL_BORDER,
+    CODE_BG,
+    RUTA_FONDOS,
+    RUTA_PERSONAJES,
+    RUTA_MUSICA,
+    RUTA_ICONO,
+)
+from entities.sprites import cargar_spritesheet
+from entities.player import Player
+
 pygame.init()
 
 
 # =====================
 # Configuración básica
 # =====================
-WIDTH, HEIGHT = 1400,950
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Python Adventure Game")
+pygame.display.set_caption(CAPTION)
+
+# Se encarga de cargar el icono en el titulo de la vetana
 try:
-    icono_img = pygame.image.load(os.path.join("assets", "icono", "python_adventure.png")).convert_alpha()
+    icono_img = pygame.image.load(
+        os.path.join("assets", "icono", "python_adventure.png")
+    ).convert_alpha()
     pygame.display.set_icon(icono_img)
 except Exception as e:
     print(f"No se pudo cargar el icono de la venta: {e}")
 clock = pygame.time.Clock()
-FPS = 60
 
-#================
-# Colores
-#================
-NEGRO       = (0, 0, 0)
-BLANCO      = (255, 255, 255)
-GRIS        = (40, 40, 40)
-GRIS_CLARO  = (200, 200, 200)
-GRIS_OSCURO = (30, 30, 30)
-ROJO        = (255, 0, 0)
-VERDE       = (0, 200, 0)
-ROJO_FALLO  = (255, 100, 100)
-NARANJA     = (230, 150, 60)
-
-PANEL_BG     = (245, 245, 245)
-PANEL_BORDER = (170, 170, 170)
-CODE_BG      = BLANCO
-
-#=================
+# =================
 # Fuentes
 # ================
 try:
     fuente_titulo = pygame.font.SysFont("consolas", 40, bold=True)
-    fuente_texto  = pygame.font.SysFont("consolas", 22)
-    fuente_peque  = pygame.font.SysFont("consolas", 16)
+    fuente_texto = pygame.font.SysFont("consolas", 22)
+    fuente_peque = pygame.font.SysFont("consolas", 16)
 except pygame.error:
     print("Advertencia: Fuente consola no encontrada, usando fuente por defecto")
     fuente_titulo = pygame.font.Font(None, 40)
-    fuente_texto  = pygame.font.Font(None, 22)
-    fuente_peque  = pygame.font.Font(None, 16)
+    fuente_texto = pygame.font.Font(None, 22)
+    fuente_peque = pygame.font.Font(None, 16)
 
 # =====================
 # Estados del juego
 # =====================
-ESTADO_MENU       = "MENU"
-ESTADO_SELECCION  = "SELECCION_PERSONAJE"
+ESTADO_MENU = "MENU"
+ESTADO_SELECCION = "SELECCION_PERSONAJE"
 ESTADO_PLAYGROUND = "PLAYGROUND"
-ESTADO_CREDITOS   = "CREDITOS"
-estado_actual     = ESTADO_MENU
+ESTADO_CREDITOS = "CREDITOS"
+estado_actual = ESTADO_MENU
 
 # Niveles
-nivel_actual     = 1
-NUM_NIVELES      = 3
+nivel_actual = 1
+NUM_NIVELES = 3
 nivel_completado = False
+
+# =================
+# personajes
+# =================
+FRAMES_CAMINAR = 6
+SCALE_CHAR = 3.0
+
+frames_dude = cargar_spritesheet(
+    os.path.join(RUTA_PERSONAJES, "Dude_Monster_Walk.png"),
+    FRAMES_CAMINAR,
+    scale=SCALE_CHAR,
+)
+frames_owlet = cargar_spritesheet(
+    os.path.join(RUTA_PERSONAJES, "Owlet_Monster_Walk.png"),
+    FRAMES_CAMINAR,
+    scale=SCALE_CHAR,
+)
+frames_pink = cargar_spritesheet(
+    os.path.join(RUTA_PERSONAJES, "Pink_Monster_Walk.png"),
+    FRAMES_CAMINAR,
+    scale=SCALE_CHAR,
+)
+
+# frame quieto
+img_dude_idle = frames_dude[0]
+img_owlet_idle = frames_owlet[0]
+img_pink_idle = frames_pink[0]
+
+player = Player(frames_dude, speed=4)
+
 
 # =====================
 # Cargar imagen con fallback
@@ -82,29 +122,23 @@ def cargar_imagen(ruta_base, nombre_archivo, tamanio=None, fallback_color=(30, 3
         surf.fill(fallback_color)
         return surf
 
+
 def escalar(img, factor):
     w, h = img.get_size()
     return pygame.transform.scale(img, (int(w * factor), int(h * factor)))
 
-# ============
-# Rutas base
-# ============
-ruta_assets     = "assets"
-ruta_fondos     = os.path.join(ruta_assets, "fondos")
-ruta_personajes = os.path.join(ruta_assets, "personajes")
-ruta_musica = os.path.join(ruta_assets, "musica")
 
 # Fondo del menú
-fondo_menu = cargar_imagen(ruta_fondos, "pantalla_inicial.png", (WIDTH, HEIGHT), NEGRO)
+fondo_menu = cargar_imagen(RUTA_FONDOS, "pantalla_inicial.png", (WIDTH, HEIGHT), NEGRO)
 
 # =====================
 # Música de fondo
 # =====================
 try:
-    ruta_tema = os.path.join(ruta_musica, "soundTrack.ogg")  # o .mp3
+    ruta_tema = os.path.join(RUTA_MUSICA, "soundTrack.ogg")  # o .mp3
     pygame.mixer.music.load(ruta_tema)
-    pygame.mixer.music.set_volume(1.0)   # volumen de 0.0 a 1.0
-    pygame.mixer.music.play(-1)          # -1 = loop infinito
+    pygame.mixer.music.set_volume(1.0)  # volumen de 0.0 a 1.0
+    pygame.mixer.music.play(-1)  # -1 = loop infinito
 except Exception as e:
     print("No se pudo cargar la música:", e)
 
@@ -114,9 +148,25 @@ except Exception as e:
 # =====================
 SCALE_CHAR = 3.0
 
-char1_img = escalar(pygame.image.load(os.path.join(ruta_personajes, "Dude_Monster.png")).convert_alpha(), SCALE_CHAR)
-char2_img = escalar(pygame.image.load(os.path.join(ruta_personajes, "Owlet_Monster.png")).convert_alpha(), SCALE_CHAR)
-char3_img = escalar(pygame.image.load(os.path.join(ruta_personajes, "Pink_Monster.png")).convert_alpha(), SCALE_CHAR)
+char1_img = escalar(
+    pygame.image.load(
+        os.path.join(RUTA_PERSONAJES, "Dude_Monster.png")
+    ).convert_alpha(),
+    SCALE_CHAR,
+)
+char2_img = escalar(
+    pygame.image.load(
+        os.path.join(RUTA_PERSONAJES, "Owlet_Monster.png")
+    ).convert_alpha(),
+    SCALE_CHAR,
+)
+char3_img = escalar(
+    pygame.image.load(
+        os.path.join(RUTA_PERSONAJES, "Pink_Monster.png")
+    ).convert_alpha(),
+    SCALE_CHAR,
+)
+
 
 # =====================
 # Botones del menú
@@ -143,23 +193,28 @@ class BotonMenuRect:
     def clic(self, pos):
         return self.rect.collidepoint(pos)
 
+
 ANCHO_BTN_MENU = 260
-ALTO_BTN_MENU  = 55
-X_BTN_MENU     = WIDTH // 2 - ANCHO_BTN_MENU // 2
+ALTO_BTN_MENU = 55
+X_BTN_MENU = WIDTH // 2 - ANCHO_BTN_MENU // 2
 
 boton_start = BotonMenuRect(X_BTN_MENU, 480, ANCHO_BTN_MENU, ALTO_BTN_MENU, "Iniciar")
-boton_cred  = BotonMenuRect(X_BTN_MENU, 545, ANCHO_BTN_MENU, ALTO_BTN_MENU, "Créditos")
+boton_cred = BotonMenuRect(X_BTN_MENU, 545, ANCHO_BTN_MENU, ALTO_BTN_MENU, "Créditos")
 boton_salir = BotonMenuRect(X_BTN_MENU, 610, ANCHO_BTN_MENU, ALTO_BTN_MENU, "Salir")
 
 botones_menu = [boton_start, boton_cred, boton_salir]
+
 
 # ========================
 # Selección de personaje
 # ========================
 class OpcionPersonaje:
-    def __init__(self, image, nombre, x, y):
-        self.image = image
+    def __init__(self, frames_walk, nombre, x, y):
+
+        self.frames_walk = frames_walk
+        self.image = self.frames_walk[0]
         self.nombre = nombre
+
         self.rect = self.image.get_rect(center=(x, y))
         self.hit_rect = self.rect.copy()
         self.hit_rect.inflate_ip(-20, -20)
@@ -172,53 +227,40 @@ class OpcionPersonaje:
         else:
             color_borde = (80, 80, 80)
 
-        pygame.draw.rect(surface, color_borde, self.rect.inflate(10, 10), 3, border_radius=8)
+        pygame.draw.rect(
+            surface, color_borde, self.rect.inflate(10, 10), 3, border_radius=8
+        )
         surface.blit(self.image, self.rect)
 
         texto = fuente_peque.render(self.nombre, True, BLANCO)
-        screen.blit(texto, texto.get_rect(center=(self.rect.centerx, self.rect.bottom + 20)))
+        screen.blit(
+            texto, texto.get_rect(center=(self.rect.centerx, self.rect.bottom + 20))
+        )
 
     def clic(self, pos):
         return self.hit_rect.collidepoint(pos)
+
 
 char_y = 420
 offset_char = 220
 
 personaje_opciones = [
-    OpcionPersonaje(char1_img, "Explorador", WIDTH//2 - offset_char, char_y),
-    OpcionPersonaje(char2_img, "Hechicera",  WIDTH//2,              char_y),
-    OpcionPersonaje(char3_img, "Guardían",   WIDTH//2 + offset_char, char_y),
+    OpcionPersonaje(frames_dude, "Explorador", WIDTH // 2 - offset_char, char_y),
+    OpcionPersonaje(frames_owlet, "Hechicera", WIDTH // 2, char_y),
+    OpcionPersonaje(frames_pink, "Guardían", WIDTH // 2 + offset_char, char_y),
 ]
 
 personaje_seleccionado = None
 
-btn_volver_rect    = pygame.Rect(100, HEIGHT - 100, 180, 50)
+btn_volver_rect = pygame.Rect(100, HEIGHT - 100, 180, 50)
 btn_continuar_rect = pygame.Rect(WIDTH - 280, HEIGHT - 100, 180, 50)
 
 # ==========================
 # Estado del PLAYGROUND
 # ==========================
-code_text    = ""
-log_message  = ""
-log_color    = NEGRO
-
-personaje_actual_img = char1_img
-
-player_x        = 0
-player_y        = 0
-player_start_x  = 0
-player_target_x = 0
-
-base_y          = 0   # y base para saltos
-player_speed    = 4
-
-# Animaciones
-modo_animacion     = None   # None, "caminar", "saltar"
-moving             = False
-saltos_pendientes  = 0
-jump_phase         = 0
-JUMP_MAX_PHASE     = 30
-JUMP_ALTURA        = 40
+code_text = ""
+log_message = ""
+log_color = NEGRO
 
 PIXELS_PER_STEP = 12
 
@@ -228,34 +270,31 @@ texto_dicho = ""
 # ==========================
 # Layout del PLAYGROUND
 # ==========================
-LEFT_WIDTH    = int(WIDTH * 0.35)
-RIGHT_WIDTH   = WIDTH - LEFT_WIDTH
-INSTR_HEIGHT  = int(HEIGHT * 0.4)
+LEFT_WIDTH = int(WIDTH * 0.35)
+RIGHT_WIDTH = WIDTH - LEFT_WIDTH
+INSTR_HEIGHT = int(HEIGHT * 0.4)
 
-RECT_LEFT  = pygame.Rect(0, 0, LEFT_WIDTH, HEIGHT)
+RECT_LEFT = pygame.Rect(0, 0, LEFT_WIDTH, HEIGHT)
 RECT_INSTR = pygame.Rect(10, 50, LEFT_WIDTH - 20, INSTR_HEIGHT - 20)
-CODE_TOP   = INSTR_HEIGHT
-RECT_CODE  = pygame.Rect(10, CODE_TOP + 10, LEFT_WIDTH - 20, HEIGHT - CODE_TOP - 70)
+CODE_TOP = INSTR_HEIGHT
+RECT_CODE = pygame.Rect(10, CODE_TOP + 10, LEFT_WIDTH - 20, HEIGHT - CODE_TOP - 70)
 
-BTN_HEIGHT     = 40
-RECT_BTN_AREA  = pygame.Rect(10, HEIGHT - BTN_HEIGHT - 10, LEFT_WIDTH - 20, BTN_HEIGHT)
-ANCHO_BTN      = (RECT_BTN_AREA.width - 30) // 2
-BTN_REINICIAR  = pygame.Rect(RECT_BTN_AREA.x + 5,
-                             RECT_BTN_AREA.y + 5,
-                             ANCHO_BTN,
-                             BTN_HEIGHT - 10)
-BTN_EJECUTAR   = pygame.Rect(RECT_BTN_AREA.x + 20 + ANCHO_BTN,
-                             RECT_BTN_AREA.y + 5,
-                             ANCHO_BTN,
-                             BTN_HEIGHT - 10)
+BTN_HEIGHT = 40
+RECT_BTN_AREA = pygame.Rect(10, HEIGHT - BTN_HEIGHT - 10, LEFT_WIDTH - 20, BTN_HEIGHT)
+ANCHO_BTN = (RECT_BTN_AREA.width - 30) // 2
+BTN_REINICIAR = pygame.Rect(
+    RECT_BTN_AREA.x + 5, RECT_BTN_AREA.y + 5, ANCHO_BTN, BTN_HEIGHT - 10
+)
+BTN_EJECUTAR = pygame.Rect(
+    RECT_BTN_AREA.x + 20 + ANCHO_BTN, RECT_BTN_AREA.y + 5, ANCHO_BTN, BTN_HEIGHT - 10
+)
 
-RECT_RIGHT    = pygame.Rect(LEFT_WIDTH, 0, RIGHT_WIDTH, HEIGHT)
+RECT_RIGHT = pygame.Rect(LEFT_WIDTH, 0, RIGHT_WIDTH, HEIGHT)
 VISUAL_HEIGHT = int(HEIGHT * 0.65)
-RECT_VISUAL   = pygame.Rect(LEFT_WIDTH + 10, 10, RIGHT_WIDTH - 20, VISUAL_HEIGHT - 20)
-RECT_LOG      = pygame.Rect(LEFT_WIDTH + 10,
-                            VISUAL_HEIGHT + 10,
-                            RIGHT_WIDTH - 20,
-                            HEIGHT - VISUAL_HEIGHT - 20)
+RECT_VISUAL = pygame.Rect(LEFT_WIDTH + 10, 10, RIGHT_WIDTH - 20, VISUAL_HEIGHT - 20)
+RECT_LOG = pygame.Rect(
+    LEFT_WIDTH + 10, VISUAL_HEIGHT + 10, RIGHT_WIDTH - 20, HEIGHT - VISUAL_HEIGHT - 20
+)
 
 # Botón "Salir" del playground
 BTN_SALIR_PLAYGROUND = pygame.Rect(10, 10, 90, 30)
@@ -264,55 +303,49 @@ BTN_SALIR_PLAYGROUND = pygame.Rect(10, 10, 90, 30)
 # Mapa visual
 # ===========
 # Coloca tu imagen aquí: assets/fondos/mapa_nivel1.png
-mapa_nivel1 = cargar_imagen(ruta_fondos, "fondo_nivel.png",
-                            (RECT_VISUAL.width, RECT_VISUAL.height),
-                            NEGRO)
+mapa_nivel1 = cargar_imagen(
+    RUTA_FONDOS, "fondo_nivel.png", (RECT_VISUAL.width, RECT_VISUAL.height), NEGRO
+)
+
 
 # ==========================
 # Lógica niveles
 # ==========================
 def base_setup_personaje():
-    global personaje_actual_img, player_x, player_y, player_start_x, base_y
-    global personaje_seleccionado
+    global player, personaje_seleccionado
 
-    if personaje_seleccionado is not None:
-        personaje_actual_img_local = personaje_opciones[personaje_seleccionado].image
+    if personaje_seleccionado == 0:
+        frames = frames_dude
+    elif personaje_seleccionado == 1:
+        frames = frames_owlet
+    elif personaje_seleccionado == 2:
+        frames = frames_pink
     else:
-        personaje_actual_img_local = char1_img
+        frames = frames_dude
 
-    # Asignar a global
-    globals()["personaje_actual_img"] = personaje_actual_img_local
+    player.set_frames(frames)
+    player.lugar_en_espacio(RECT_VISUAL, align="left")
 
-    player_start_x = RECT_VISUAL.x + 40
-    player_x_local = player_start_x
-    player_y_local = RECT_VISUAL.bottom - personaje_actual_img_local.get_height() - 20
-
-    globals()["player_x"] = player_x_local
-    globals()["player_y"] = player_y_local
-    globals()["base_y"]   = player_y_local
 
 def iniciar_nivel(n):
     global nivel_actual, code_text, log_message, log_color
     global texto_dicho, nivel_completado
-    global modo_animacion, moving, saltos_pendientes, jump_phase
 
-    nivel_actual     = n
+    nivel_actual = n
     nivel_completado = False
-    code_text        = ""
-    texto_dicho      = ""
-    log_color        = NEGRO
-    modo_animacion   = None
-    moving           = False
-    saltos_pendientes = 0
-    jump_phase        = 0
+    code_text = ""
+    texto_dicho = ""
+    log_color = NEGRO
 
     base_setup_personaje()
 
     if n == 1:
         log_message = "Nivel 1: usa una variable 'pasos' y mover()."
     elif n == 2:
+        player.lugar_en_espacio(RECT_VISUAL, align="center")
         log_message = "Nivel 2: usa print() para que el personaje hable."
     elif n == 3:
+        player.lugar_en_espacio(RECT_VISUAL, align="center")
         log_message = "Nivel 3: usa un ciclo for y saltar()."
 
 
@@ -330,7 +363,7 @@ def analizar_nivel1(texto):
 
     nombre, valor = linea_var.split("=", 1)
     nombre = nombre.strip()
-    valor  = valor.strip()
+    valor = valor.strip()
 
     if nombre != "pasos":
         return False, "La variable debe llamarse exactamente 'pasos'."
@@ -344,7 +377,7 @@ def analizar_nivel1(texto):
     if not linea_mover.startswith("mover(") or not linea_mover.endswith(")"):
         return False, "La segunda línea debe ser: mover(pasos) o mover(10)."
 
-    argumento = linea_mover[len("mover("):-1].strip()
+    argumento = linea_mover[len("mover(") : -1].strip()
 
     if argumento == "pasos":
         pasos_finales = pasos_val
@@ -358,6 +391,7 @@ def analizar_nivel1(texto):
 
     return True, pasos_finales
 
+
 def analizar_nivel2(texto):
     """
     Nivel 2: print("mensaje").
@@ -368,18 +402,19 @@ def analizar_nivel2(texto):
 
     linea = lineas[0]
     if not (linea.startswith("print(") and linea.endswith(")")):
-        return False, "Debes usar: print(\"tu mensaje\")"
+        return False, 'Debes usar: print("tu mensaje")'
 
-    contenido = linea[len("print("):-1].strip()
+    contenido = linea[len("print(") : -1].strip()
 
     if len(contenido) < 2 or contenido[0] not in "\"'" or contenido[-1] != contenido[0]:
-        return False, "El texto debe ir entre comillas: print(\"Hola\")"
+        return False, 'El texto debe ir entre comillas: print("Hola")'
 
     mensaje = contenido[1:-1]  # quitar comillas
     if len(mensaje) > 200:
         return False, "El mensaje puede tener máximo 200 caracteres."
 
     return True, mensaje
+
 
 def analizar_nivel3(texto):
     """
@@ -392,9 +427,9 @@ def analizar_nivel3(texto):
     if not lineas:
         return False, "Debes usar un ciclo for y la función saltar()."
 
-    tiene_for    = False
+    tiene_for = False
     tiene_saltar = False
-    n_saltos     = 0
+    n_saltos = 0
 
     for linea in lineas:
         linea_sin_esp = linea.replace(" ", "")
@@ -419,49 +454,27 @@ def analizar_nivel3(texto):
 
     return True, n_saltos
 
+
 def actualizar_animacion():
     """
     Mueve al personaje según el modo de animación (caminar o saltar).
     También marca el nivel como completado cuando termina.
     """
-    global player_x, player_y, moving, saltos_pendientes, jump_phase
-    global modo_animacion, log_message, log_color, nivel_completado
 
-    if modo_animacion == "caminar":
-        if not moving:
-            return
-        if player_x < player_target_x:
-            player_x += player_speed
-            if player_x >= player_target_x:
-                player_x = player_target_x
-                moving = False
-                nivel_completado = True
-                log_message = "¡Genial! Moviste al personaje correctamente."
-                log_color   = VERDE
-        else:
-            moving = False
+    global nivel_completado, log_message, log_color, nivel_actual
 
-    elif modo_animacion == "saltar":
-        if saltos_pendientes <= 0:
-            player_y = base_y
-            modo_animacion = None
-            nivel_completado = True
-            log_message = "¡Perfecto! Usaste un ciclo para saltar."
-            log_color   = VERDE
-            return
+    modo_finalizado = player.actualizar()
 
-        # simple salto triangular
-        t = jump_phase / JUMP_MAX_PHASE
-        if t < 0.5:
-            player_y = base_y - int(JUMP_ALTURA * (t * 2))      # sube
-        else:
-            player_y = base_y - int(JUMP_ALTURA * (1 - (t - 0.5) * 2))  # baja
+    if modo_finalizado == "walk" and nivel_actual == 1:
+        nivel_completado = True
+        log_message = "¡Genial! Moviste al personaje correctamente."
+        log_color = VERDE
 
-        jump_phase += 1
-        if jump_phase >= JUMP_MAX_PHASE:
-            jump_phase = 0
-            saltos_pendientes -= 1
-            player_y = base_y
+    if modo_finalizado == "jump" and nivel_actual == 3:
+        nivel_completado = True
+        log_message = "¡Perfecto! Usaste un ciclo para saltar."
+        log_color = VERDE
+
 
 # ==========================
 # Dibujo de pantallas
@@ -488,6 +501,7 @@ def dibujar_texto_multilinea(texto, rect, font, color):
             surf = font.render(linea, True, color)
             screen.blit(surf, (x, y))
             y += font.get_linesize()
+
 
 def medir_texto_multilinea(texto, max_width, font):
     """
@@ -530,6 +544,7 @@ def dibujar_pantalla_menu():
     for boton in botones_menu:
         boton.dibujar(screen, (mx, my))
 
+
 def dibujar_boton_rect(rect, texto, activo=True):
     color_fondo = GRIS_OSCURO if activo else (60, 60, 60)
     color_borde = NARANJA if activo else (120, 120, 120)
@@ -538,33 +553,37 @@ def dibujar_boton_rect(rect, texto, activo=True):
     txt = fuente_peque.render(texto, True, BLANCO if activo else (180, 180, 180))
     screen.blit(txt, txt.get_rect(center=rect.center))
 
+
 def dibujar_pantalla_seleccion():
     screen.fill((15, 15, 25))
 
     titulo = fuente_titulo.render("Elige tu aventurer@", True, NARANJA)
-    screen.blit(titulo, titulo.get_rect(center=(WIDTH//2, 60)))
+    screen.blit(titulo, titulo.get_rect(center=(WIDTH // 2, 60)))
 
     proposito_lines = [
         "Python Adventure",
         "",
         "Aprenderás programación en Python paso a paso,",
         "moviendo y ayudando a tu personaje en un mundo 8-bit.",
-        "Usaremos variables, print(), ciclos y más."
+        "Usaremos variables, print(), ciclos y más.",
     ]
     y_text = 120
     for linea in proposito_lines:
         t = fuente_peque.render(linea, True, BLANCO)
-        screen.blit(t, t.get_rect(center=(WIDTH//2, y_text)))
+        screen.blit(t, t.get_rect(center=(WIDTH // 2, y_text)))
         y_text += 24
 
     mx, my = pygame.mouse.get_pos()
     for idx, opcion in enumerate(personaje_opciones):
         hover = opcion.hit_rect.collidepoint((mx, my))
-        seleccionado = (personaje_seleccionado == idx)
+        seleccionado = personaje_seleccionado == idx
         opcion.dibujar(screen, seleccionado=seleccionado, hover=hover)
 
     dibujar_boton_rect(btn_volver_rect, "Volver al menú", activo=True)
-    dibujar_boton_rect(btn_continuar_rect, "Continuar", activo=(personaje_seleccionado is not None))
+    dibujar_boton_rect(
+        btn_continuar_rect, "Continuar", activo=(personaje_seleccionado is not None)
+    )
+
 
 def dibujar_pantalla_playground():
     screen.fill(GRIS)
@@ -599,7 +618,7 @@ def dibujar_pantalla_playground():
             "Nivel 2: print()\n\n"
             "La función print() muestra un texto en pantalla.\n"
             "Ejemplo:\n"
-            "    print(\"Hola mundo\")\n\n"
+            '    print("Hola mundo")\n\n'
             "Reto: escribe un print con el mensaje que quieras\n"
             "(máx 200 caracteres). El personaje lo dirá."
         )
@@ -622,7 +641,9 @@ def dibujar_pantalla_playground():
     if code_text:
         dibujar_texto_multilinea(code_text, RECT_CODE, fuente_peque, NEGRO)
     else:
-        dibujar_texto_multilinea("# Escribe tu código aquí", RECT_CODE, fuente_peque, (150, 150, 150))
+        dibujar_texto_multilinea(
+            "# Escribe tu código aquí", RECT_CODE, fuente_peque, (150, 150, 150)
+        )
 
     # Botones Reiniciar / Ejecutar / Siguiente
     pygame.draw.rect(screen, PANEL_BG, RECT_BTN_AREA)
@@ -656,29 +677,27 @@ def dibujar_pantalla_playground():
     screen.blit(mapa_nivel1, (RECT_VISUAL.x, RECT_VISUAL.y))
 
     texto_visual = fuente_peque.render(
-        "[ESC] Volver al menú | Visual del juego.",
-        True, BLANCO
+        "[ESC] Volver al menú | Visual del juego.", True, BLANCO
     )
     screen.blit(texto_visual, (RECT_VISUAL.x + 10, RECT_VISUAL.y + 10))
 
     # Personaje
-    screen.blit(personaje_actual_img, (player_x, player_y))
+    player.dibujar(screen)
 
     # Si hay texto dicho (nivel 2), dibujar bocadillo
     if texto_dicho:
         max_bubble_width = RECT_VISUAL.width - 40
         min_bubble_width = 120
 
-        text_w, text_h = medir_texto_multilinea(texto_dicho, max_bubble_width, fuente_peque)
+        text_w, text_h = medir_texto_multilinea(
+            texto_dicho, max_bubble_width, fuente_peque
+        )
 
         bubble_width = max(min_bubble_width, min(max_bubble_width, text_w + 16))
         bubble_height = text_h + 16
 
         bubble_rect = pygame.Rect(0, 0, bubble_width, bubble_height)
-        bubble_rect.midbottom = (
-            player_x + personaje_actual_img.get_width() // 2,
-            player_y - 10
-        )
+        bubble_rect.midbottom = (player.rect.centerx, player.rect.top - 10)
 
         if bubble_rect.left < RECT_VISUAL.x + 10:
             bubble_rect.left = RECT_VISUAL.x + 10
@@ -691,11 +710,11 @@ def dibujar_pantalla_playground():
         pygame.draw.rect(screen, PANEL_BORDER, bubble_rect, 1, border_radius=10)
         dibujar_texto_multilinea(texto_dicho, bubble_rect, fuente_peque, NEGRO)
 
-
     # Log
     pygame.draw.rect(screen, CODE_BG, RECT_LOG)
     pygame.draw.rect(screen, PANEL_BORDER, RECT_LOG, 1)
     dibujar_texto_multilinea(log_message, RECT_LOG, fuente_peque, log_color)
+
 
 def dibujar_pantalla_creditos():
     screen.fill(NEGRO)
@@ -704,9 +723,7 @@ def dibujar_pantalla_creditos():
         "",
         "Creado por:",
         "  - Anderson Gil Arenas",
-        "  - Victor Manuel Estrada"
-        ""
-        "",
+        "  - Victor Manuel Estrada" "" "",
         "Este proyecto nace con el propósito de enseñar Python",
         "de una forma sencilla y visual a niñas, niños y personas",
         "que están dando sus primeros pasos en programación.",
@@ -715,13 +732,14 @@ def dibujar_pantalla_creditos():
         "buscamos que aprender variables, print(), ciclos y",
         "otras bases de la lógica sea divertido y menos intimidante.",
         "",
-        "Presiona ESC para volver al menú."
+        "Presiona ESC para volver al menú.",
     ]
     y = 120
     for linea in lineas:
         txt = fuente_peque.render(linea, True, BLANCO)
-        screen.blit(txt, txt.get_rect(center=(WIDTH//2, y)))
+        screen.blit(txt, txt.get_rect(center=(WIDTH // 2, y)))
         y += 26
+
 
 # ====================
 # Loop principal
@@ -758,7 +776,10 @@ while running:
                     estado_actual = ESTADO_MENU
                     personaje_seleccionado = None
 
-                if btn_continuar_rect.collidepoint((mx, my)) and personaje_seleccionado is not None:
+                if (
+                    btn_continuar_rect.collidepoint((mx, my))
+                    and personaje_seleccionado is not None
+                ):
                     iniciar_nivel(1)
                     estado_actual = ESTADO_PLAYGROUND
 
@@ -798,41 +819,37 @@ while running:
                             ok, res = analizar_nivel1(code_text)
                             if not ok:
                                 log_message = "Error: " + res
-                                log_color   = ROJO_FALLO
+                                log_color = ROJO_FALLO
                             else:
                                 pasos = res
-                                max_pixels = RECT_VISUAL.right - 40 - personaje_actual_img.get_width() - player_start_x
-                                distancia  = min(pasos * PIXELS_PER_STEP, max_pixels)
-                                player_x       = player_start_x
-                                player_target_x = player_start_x + distancia
-                                modo_animacion  = "caminar"
-                                moving          = True
-                                log_message     = f"Ejecutando mover({pasos})..."
-                                log_color       = NEGRO
+                                player.iniciar_caminar(
+                                    pasos, PIXELS_PER_STEP, RECT_VISUAL
+                                )
+                                nivel_completado = False
+                                log_message = f"Ejecutando mover({pasos})..."
+                                log_color = NEGRO
 
                         elif nivel_actual == 2:
                             ok, mensaje = analizar_nivel2(code_text)
                             if not ok:
                                 log_message = "Error: " + mensaje
-                                log_color   = ROJO_FALLO
+                                log_color = ROJO_FALLO
                             else:
-                                texto_dicho     = mensaje
+                                texto_dicho = mensaje
                                 nivel_completado = True
-                                log_message     = "¡Bien! Usaste print() correctamente."
-                                log_color       = VERDE
+                                log_message = "¡Bien! Usaste print() correctamente."
+                                log_color = VERDE
 
                         elif nivel_actual == 3:
                             ok, n_saltos = analizar_nivel3(code_text)
                             if not ok:
-                                log_message = "Error: " + n_saltos
-                                log_color   = ROJO_FALLO
+                                log_message = f"Error: {n_saltos}"
+                                log_color = ROJO_FALLO
                             else:
-                                saltos_pendientes = n_saltos
-                                jump_phase        = 0
-                                modo_animacion    = "saltar"
-                                log_message       = f"Ejecutando saltar() {n_saltos} veces..."
-                                log_color         = NEGRO
-                                nivel_completado  = False
+                                player.iniciar_saltar(n_saltos)
+                                log_message = f"Ejecutando saltar() {n_saltos} veces..."
+                                log_color = NEGRO
+                                nivel_completado = False
 
         # ----- CRÉDITOS -----
         elif estado_actual == ESTADO_CREDITOS:
