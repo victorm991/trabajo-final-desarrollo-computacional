@@ -77,6 +77,7 @@ nivel_completado = False
 # personajes
 # =================
 FRAMES_CAMINAR = 6
+FRAMES_SALTAR = 8
 SCALE_CHAR = 3.0
 
 frames_dude = cargar_spritesheet(
@@ -95,12 +96,32 @@ frames_pink = cargar_spritesheet(
     scale=SCALE_CHAR,
 )
 
+frames_dude_jump = cargar_spritesheet(
+    os.path.join(RUTA_PERSONAJES, "Dude_Monster_Jump.png"),
+    FRAMES_SALTAR,
+    scale = SCALE_CHAR,
+)
+frames_owlet_jump = cargar_spritesheet(
+    os.path.join(RUTA_PERSONAJES, "Owlet_Monster_Jump.png"),
+    FRAMES_SALTAR,
+    scale = SCALE_CHAR,
+)
+frames_pink_jump = cargar_spritesheet(
+    os.path.join(RUTA_PERSONAJES, "Pink_Monster_Jump.png"),
+    FRAMES_SALTAR,
+    scale = SCALE_CHAR,
+)
+
 # frame quieto
 img_dude_idle = frames_dude[0]
 img_owlet_idle = frames_owlet[0]
 img_pink_idle = frames_pink[0]
 
-player = Player(frames_dude, speed=4)
+frames_dude_salto = frames_dude_jump[0]
+frames_owlet_salto = frames_owlet_jump[0]
+frames_pink_salto = frames_pink_jump[0]
+
+player = Player(img_dude_idle, frames_dude, frames_dude_jump, speed=4)
 
 
 # =====================
@@ -315,15 +336,23 @@ def base_setup_personaje():
     global player, personaje_seleccionado
 
     if personaje_seleccionado == 0:
-        frames = frames_dude
+        idle = img_dude_idle
+        caminar = frames_dude
+        saltar = frames_dude_jump
     elif personaje_seleccionado == 1:
-        frames = frames_owlet
+        idle = img_owlet_idle
+        caminar = frames_owlet
+        saltar = frames_owlet_jump
     elif personaje_seleccionado == 2:
-        frames = frames_pink
+        idle = img_pink_idle
+        caminar = frames_pink
+        saltar = frames_pink_jump
     else:
-        frames = frames_dude
+        idle = img_dude_idle
+        caminar = frames_dude
+        saltar = frames_dude_jump
 
-    player.set_frames(frames)
+    player.set_frames(idle, caminar, saltar)
     player.lugar_en_espacio(RECT_VISUAL, align="left")
 
 
